@@ -1,0 +1,90 @@
+
+{% extends "base.html" %}
+{% block title %}Student Feedback Form{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <h1>Student Feedback Form</h1>
+    <p>Your feedback helps us improve teaching and learning.</p>
+</section>
+
+<form action="{{ url_for('submit') }}" method="POST"
+      class="panel feedback-form" id="feedbackForm">
+
+    <h2>Student Details</h2>
+
+    <div class="form-grid">
+        <label>Student Name
+            <input type="text" name="student_name" maxlength="100" required>
+        </label>
+
+        <label>Roll Number
+            <input type="text" name="roll_number" maxlength="30" required>
+        </label>
+
+        <label>Department
+            <select name="department" required>
+                <option value="">Select department</option>
+                <option>CSE</option>
+                <option>IT</option>
+                <option>ECE</option>
+                <option>EEE</option>
+                <option>Mechanical</option>
+                <option>Civil</option>
+                <option>Other</option>
+            </select>
+        </label>
+
+        <label>Year of Study
+            <select name="year" required>
+                <option value="">Select year</option>
+                <option>1st Year</option>
+                <option>2nd Year</option>
+                <option>3rd Year</option>
+                <option>4th Year</option>
+            </select>
+        </label>
+
+        <label>Subject
+            <input type="text" name="subject" maxlength="100" required>
+        </label>
+
+        <label>Faculty Name
+            <input type="text" name="faculty" maxlength="100" required>
+        </label>
+    </div>
+
+    <h2>Rate Your Experience</h2>
+    <p class="hint">1 = Poor, 2 = Fair, 3 = Average, 4 = Good, 5 = Excellent</p>
+
+    {% set questions = [
+        ('teaching', 'Teaching Quality'),
+        ('clarity', 'Subject Understanding'),
+        ('interaction', 'Faculty Interaction'),
+        ('punctuality', 'Faculty Punctuality'),
+        ('facilities', 'Classroom Facilities')
+    ] %}
+
+    {% for field, question in questions %}
+        <fieldset class="rating-group">
+            <legend>{{ question }}</legend>
+            <div class="rating-options">
+                {% for value in range(1, 6) %}
+                    <label>
+                        <input type="radio" name="{{ field }}"
+                               value="{{ value }}" required>
+                        <span>{{ value }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+    {% endfor %}
+
+    <label class="comments-label">Additional Comments
+        <textarea name="comments" rows="5" maxlength="2000"
+                  placeholder="Share your experience or suggestions"></textarea>
+    </label>
+
+    <button type="submit" class="button">Submit Feedback</button>
+</form>
+{% endblock %}

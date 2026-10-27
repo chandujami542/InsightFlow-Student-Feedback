@@ -1,0 +1,122 @@
+
+{% extends "base.html" %}
+
+{% block title %}Feedback Archive | InsightFlow{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <div>
+        <p class="eyebrow">RESPONSE MANAGEMENT</p>
+        <h1>Feedback Archive</h1>
+        <p>Search, filter, and review submitted student feedback.</p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('export_csv', **filters) }}">
+        Export CSV
+    </a>
+</section>
+
+<form class="filter-panel" method="GET" action="{{ url_for('history') }}">
+    <div class="filter-grid">
+        <label>
+            Search
+            <input type="text" name="search" value="{{ filters.search }}"
+                   placeholder="Name, roll number, faculty or comment">
+        </label>
+
+        <label>
+            Department
+            <select name="department">
+                <option value="">All departments</option>
+                {% for item in departments %}
+                <option value="{{ item }}" {% if filters.department == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>
+            Academic year
+            <select name="year">
+                <option value="">All years</option>
+                {% for item in years %}
+                <option value="{{ item }}" {% if filters.year == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>
+            Subject
+            <select name="subject">
+                <option value="">All subjects</option>
+                {% for item in subjects %}
+                <option value="{{ item }}" {% if filters.subject == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>
+            Sentiment
+            <select name="sentiment">
+                <option value="">All sentiments</option>
+                {% for item in ["Positive", "Neutral", "Negative"] %}
+                <option value="{{ item }}" {% if filters.sentiment == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </label>
+    </div>
+
+    <div class="filter-actions">
+        <button class="btn btn-primary" type="submit">Search feedback</button>
+        <a class="btn btn-secondary" href="{{ url_for('history') }}">Clear filters</a>
+    </div>
+</form>
+
+<section class="table-card">
+    <div class="section-heading">
+        <div>
+            <h2>All responses</h2>
+            <p>{{ feedback|length }} matching submission(s)</p>
+        </div>
+    </div>
+
+    {% if feedback %}
+    <div class="table-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Student</th>
+                    <th>Roll number</th>
+                    <th>Department</th>
+                    <th>Subject</th>
+                    <th>Faculty</th>
+                    <th>Average rating</th>
+                    <th>Sentiment</th>
+                    <th>Comments</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in feedback %}
+                <tr>
+                    <td>{{ item.created_at }}</td>
+                    <td>{{ item.student_name }}</td>
+                    <td>{{ item.roll_number }}</td>
+                    <td>{{ item.department }}</td>
+                    <td>{{ item.subject }}</td>
+                    <td>{{ item.faculty }}</td>
+                    <td>{{ "%.1f"|format((item.teaching + item.clarity + item.interaction + item.punctuality + item.facilities) / 5) }}/5</td>
+                    <td><span class="sentiment-badge {{ item.sentiment|lower }}">{{ item.sentiment }}</span></td>
+                    <td>{{ item.comments or "—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>No matching feedback found</h3>
+        <p>Try changing your filters or submit a new response.</p>
+        <a class="btn btn-primary" href="{{ url_for('index') }}">Submit feedback</a>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

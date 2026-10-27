@@ -1,0 +1,268 @@
+
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard | InsightFlow{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <div>
+        <p class="eyebrow">FEEDBACK INTELLIGENCE</p>
+        <h1>Analytics Dashboard</h1>
+        <p>Turn student feedback into meaningful improvements.</p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('export_csv', **filters) }}">
+        Export CSV
+    </a>
+</section>
+
+<form class="filter-panel" method="GET" action="{{ url_for('dashboard') }}">
+    <div class="filter-grid">
+        <label>
+            Department
+            <select name="department">
+                <option value="">All departments</option>
+                {% for item in departments %}
+                <option value="{{ item }}" {% if filters.department == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>
+            Academic year
+            <select name="year">
+                <option value="">All years</option>
+                {% for item in years %}
+                <option value="{{ item }}" {% if filters.year == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>
+            Subject
+            <select name="subject">
+                <option value="">All subjects</option>
+                {% for item in subjects %}
+                <option value="{{ item }}" {% if filters.subject == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>
+            Sentiment
+            <select name="sentiment">
+                <option value="">All sentiments</option>
+                {% for item in ["Positive", "Neutral", "Negative"] %}
+                <option value="{{ item }}" {% if filters.sentiment == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </label>
+    </div>
+
+    <div class="filter-actions">
+        <button class="btn btn-primary" type="submit">Apply filters</button>
+        <a class="btn btn-secondary" href="{{ url_for('dashboard') }}">Reset</a>
+    </div>
+</form>
+
+<section class="stats-grid">
+    <article class="stat-card">
+        <p>Filtered responses</p>
+        <h2>{{ total }}</h2>
+        <span>Matching submissions</span>
+    </article>
+
+    <article class="stat-card">
+        <p>Average rating</p>
+        <h2>{{ "%.2f"|format(average) }} <small>/ 5</small></h2>
+        <span>Across five categories</span>
+    </article>
+
+    <article class="stat-card">
+        <p>Positive comments</p>
+        <h2>{{ sentiment_counts["Positive"] }}</h2>
+        <span>Keyword-based classification</span>
+    </article>
+
+    <article class="stat-card">
+        <p>Needs review</p>
+        <h2>{{ sentiment_counts["Negative"] }}</h2>
+        <span>Comments marked negative</span>
+    </article>
+</section>
+
+<section class="insights-panel">
+    <div>
+        <p class="eyebrow">AUTOMATED SUMMARY</p>
+        <h2>Key insights</h2>
+    </div>
+    <ul>
+        {% for insight in insights %}
+        <li>{{ insight }}</li>
+        {% endfor %}
+    </ul>
+</section>
+
+<section class="charts-grid">
+    <article class="chart-card">
+        <h2>Category performance</h2>
+        <p>Average score for each feedback category</p>
+        <div class="chart-container">
+            <canvas id="ratingChart"></canvas>
+        </div>
+    </article>
+
+    <article class="chart-card">
+        <h2>Sentiment distribution</h2>
+        <p>Comment classification breakdown</p>
+        <div class="chart-container">
+            <canvas id="sentimentChart"></canvas>
+        </div>
+    </article>
+
+    <article class="chart-card">
+        <h2>Feedback activity</h2>
+        <p>Submissions by date</p>
+        <div class="chart-container">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </article>
+
+    <article class="chart-card">
+        <h2>Department participation</h2>
+        <p>Responses from each department</p>
+        <div class="chart-container">
+            <canvas id="departmentChart"></canvas>
+        </div>
+    </article>
+</section>
+
+<section class="table-card">
+    <div class="section-heading">
+        <div>
+            <h2>Recent feedback</h2>
+            <p>The latest five matching submissions</p>
+        </div>
+        <a href="{{ url_for('history', **filters) }}">View all feedback →</a>
+    </div>
+
+    {% if recent %}
+    <div class="table-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Subject</th>
+                    <th>Department</th>
+                    <th>Rating</th>
+                    <th>Sentiment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in recent %}
+                <tr>
+                    <td>{{ item.student_name }}</td>
+                    <td>{{ item.subject }}</td>
+                    <td>{{ item.department }}</td>
+                    <td>{{ "%.1f"|format((item.teaching + item.clarity + item.interaction + item.punctuality + item.facilities) / 5) }}/5</td>
+                    <td><span class="sentiment-badge {{ item.sentiment|lower }}">{{ item.sentiment }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="empty-state">No feedback matches these filters yet.</p>
+    {% endif %}
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ratingLabels = {{ rating_labels|tojson }};
+const ratingScores = {{ rating_scores|tojson }};
+const sentimentCounts = {{ sentiment_counts|tojson }};
+const trendLabels = {{ trend_labels|tojson }};
+const trendValues = {{ trend_values|tojson }};
+const deptLabels = {{ dept_labels|tojson }};
+const deptValues = {{ dept_values|tojson }};
+
+new Chart(document.getElementById("ratingChart"), {
+    type: "bar",
+    data: {
+        labels: ratingLabels,
+        datasets: [{
+            label: "Average rating",
+            data: ratingScores,
+            backgroundColor: "#7067e8",
+            borderRadius: 7
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true, max: 5, ticks: { stepSize: 1 } }
+        }
+    }
+});
+
+new Chart(document.getElementById("sentimentChart"), {
+    type: "doughnut",
+    data: {
+        labels: ["Positive", "Neutral", "Negative"],
+        datasets: [{
+            data: [
+                sentimentCounts.Positive,
+                sentimentCounts.Neutral,
+                sentimentCounts.Negative
+            ],
+            backgroundColor: ["#31b89b", "#f2b84b", "#ef7185"],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom" } }
+    }
+});
+
+new Chart(document.getElementById("trendChart"), {
+    type: "line",
+    data: {
+        labels: trendLabels,
+        datasets: [{
+            label: "Responses",
+            data: trendValues,
+            borderColor: "#7067e8",
+            backgroundColor: "rgba(112, 103, 232, 0.12)",
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+});
+
+new Chart(document.getElementById("departmentChart"), {
+    type: "bar",
+    data: {
+        labels: deptLabels,
+        datasets: [{
+            label: "Responses",
+            data: deptValues,
+            backgroundColor: "#31b89b",
+            borderRadius: 7
+        }]
+    },
+    options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+});
+</script>
+{% endblock %}
