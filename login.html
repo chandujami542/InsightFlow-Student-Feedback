@@ -1,0 +1,55 @@
+
+{% extends "base.html" %}
+{% block title %}Student Login | InsightFlow{% endblock %}
+
+{% block content %}
+
+<section class="auth-page">
+    <div class="auth-card">
+
+        <div class="auth-heading">
+            <span class="auth-icon">I</span>
+            <span class="hero-tag">WELCOME BACK</span>
+            <h1>Student Login</h1>
+            <p>Sign in to access your InsightFlow account.</p>
+        </div>
+
+        <form action="{{ url_for('login') }}" method="POST"
+              class="auth-form">
+
+            <label for="email">MBU Student Email</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="yourrollnumber@mbu.asia"
+                required
+            >
+
+            <label for="password">Password</label>
+            <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                required
+            >
+
+            <button type="submit" class="button auth-button">
+                Login to InsightFlow
+            </button>
+        </form>
+
+        <p class="auth-switch">
+            Don't have an account?
+            <a href="{{ url_for('register') }}">Create an account</a>
+        </p>
+
+        <a href="{{ url_for('landing') }}" class="back-link">
+            ← Back to Home
+        </a>
+
+    </div>
+</section>
+
+{% endblock %}

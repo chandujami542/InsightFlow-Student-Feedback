@@ -1,0 +1,89 @@
+
+{% extends "base.html" %}
+{% block title %}Student Registration | InsightFlow{% endblock %}
+
+{% block content %}
+
+<section class="auth-page">
+    <div class="auth-card register-card">
+
+        <div class="auth-heading">
+            <span class="auth-icon">I</span>
+            <span class="hero-tag">JOIN INSIGHTFLOW</span>
+            <h1>Create Your Account</h1>
+            <p>Register using your Mohan Babu University student details.</p>
+        </div>
+
+        <form action="{{ url_for('register') }}" method="POST"
+              class="auth-form">
+
+            <label for="name">Student Name</label>
+            <input
+                type="text"
+                id="name"
+                name="student_name"
+                maxlength="100"
+                placeholder="Enter your full name"
+                required
+            >
+
+            <label for="roll_number">Roll Number</label>
+            <input
+                type="text"
+                id="roll_number"
+                name="roll_number"
+                maxlength="30"
+                placeholder="Enter your university roll number"
+                required
+            >
+
+            <label for="email">MBU Student Email</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="yourrollnumber@mbu.asia"
+                required
+            >
+            <small class="input-hint">
+                Use your MBU student email address.
+            </small>
+
+            <label for="password">Create Password</label>
+            <input
+                type="password"
+                id="password"
+                name="password"
+                minlength="8"
+                placeholder="Minimum 8 characters"
+                required
+            >
+
+            <label for="confirm_password">Confirm Password</label>
+            <input
+                type="password"
+                id="confirm_password"
+                name="confirm_password"
+                minlength="8"
+                placeholder="Re-enter your password"
+                required
+            >
+
+            <button type="submit" class="button auth-button">
+                Create Account
+            </button>
+        </form>
+
+        <p class="auth-switch">
+            Already have an account?
+            <a href="{{ url_for('login') }}">Login here</a>
+        </p>
+
+        <a href="{{ url_for('landing') }}" class="back-link">
+            ← Back to Home
+        </a>
+
+    </div>
+</section>
+
+{% endblock %}
